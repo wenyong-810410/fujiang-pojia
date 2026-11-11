@@ -2069,8 +2069,13 @@ window.__ModuleLoader__.load({
           })
         });
         // 键盘兜底：Enter / Esc 等同于「同意并遵守」，避免浮层点不到时卡死。
+        // 只有声明可见时才占用这两个键；声明关闭后不得再注册 window 捕获监听，
+        // 否则会截走会话输入框的 Enter 发送与 Shift+Enter 换行。
         react.useEffect(() => {
+          if (!open) return;
           const onKey = (event) => {
+            // 输入法合成中的 Enter 是确认候选词，不应被当成「同意」。
+            if (event && (event.isComposing || event.keyCode === 229)) return;
             const key = event && event.key;
             if (key === "Enter" || key === "Escape") {
               try { event.preventDefault(); event.stopPropagation(); } catch (error) {}
